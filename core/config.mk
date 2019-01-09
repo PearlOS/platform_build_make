@@ -230,9 +230,8 @@ $(call project-set-path-variant,ril,TARGET_RIL_VARIANT,hardware/ril)
 $(call project-set-path-variant,recovery,RECOVERY_VARIANT,bootable/recovery)
 
 -include vendor/extra/BoardConfigExtra.mk
-ifneq ($(CUSTOM_BUILD),)
-include vendor/pearl/config/BoardConfigLean.mk
-endif
+
+include vendor/pearl/config/BoardConfigPearl.mk
 
 # The build system exposes several variables for where to find the kernel
 # headers:
@@ -1117,7 +1116,6 @@ endif
 
 # Rules for MTK targets
 -include $(TOPDIR)vendor/pearl/build/core/mtk_target.mk
-endif
 
 
 include $(BUILD_SYSTEM)/dumpvar.mk
