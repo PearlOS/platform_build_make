@@ -331,7 +331,7 @@ endif
 	$(hide) TARGET_BUILD_TYPE="$(TARGET_BUILD_VARIANT)" \
 			TARGET_BUILD_FLAVOR="$(TARGET_BUILD_FLAVOR)" \
 			TARGET_DEVICE="$(TARGET_DEVICE)" \
-			PEARL_DEVICE="$(TARGET_DEVICE)" \
+			CUSTOM_DEVICE="$(TARGET_DEVICE)" \
 			PRODUCT_NAME="$(TARGET_PRODUCT)" \
 			PRODUCT_BRAND="$(PRODUCT_BRAND)" \
 			PRODUCT_DEFAULT_LOCALE="$(call get-default-product-locale,$(PRODUCT_LOCALES))" \
@@ -3037,13 +3037,13 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) \
 	   $(if $(OEM_OTA_CONFIG), -o $(OEM_OTA_CONFIG)) \
 	   $(BUILT_TARGET_FILES_PACKAGE) $@
 
-TARGET_PACKAGE := $(PRODUCT_OUT)/ PearlOS-$(PEARL_VERSION)-$(TARGET_DEVICE)-$(shell date -u +%Y%m%d-%H%M)-$(PEARL_BUILD_TYPE).zip
+TARGET_PACKAGE := $(PRODUCT_OUT)/$(PEARL_VERSION).zip
 
 .PHONY: otapackage bacon pearl
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
 bacon: otapackage
-bacon: lean
-lean: otapackage
+bacon: pearl
+pearl: otapackage
         $(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(TARGET_PACKAGE)
 	$(hide) $(MD5SUM) $(TARGET_PACKAGE) > $(TARGET_PACKAGE).md5sum
 	@echo -e ${CL_BLD}${CL_CYN}"===============================-Package complete-==============================="${CL_RST}

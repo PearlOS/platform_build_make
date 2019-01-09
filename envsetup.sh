@@ -29,7 +29,7 @@ Invoke ". build/envsetup.sh" from your shell to add the following functions to y
 
 EOF
 
-    __print_pearl_functions_help
+    __print_custom_functions_help
 
 cat <<EOF
 
@@ -137,13 +137,13 @@ function check_product()
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
     fi
-    if (echo -n $1 | grep -q -e "^lean_") ; then
-        LEAN_BUILD=$(echo -n $1 | sed -e 's/^lean_//g')
-        export BUILD_NUMBER=$( (date +%s%N ; echo $LEAN_BUILD; hostname) | openssl sha1 | sed -e 's/.*=//g; s/ //g' | cut -c1-10 )
+    if (echo -n $1 | grep -q -e "^pearl_") ; then
+        CUSTOM_BUILD=$(echo -n $1 | sed -e 's/^pearl_//g')
+        export BUILD_NUMBER=$( (date +%s%N ; echo $CUSTOMN_BUILD; hostname) | openssl sha1 | sed -e 's/.*=//g; s/ //g' | cut -c1-10 )
     else
-        LEAN_BUILD=
+        CUSTOM_BUILD=
     fi
-    export LEAN_BUILD
+    export CUSTOM_BUILD
 
         TARGET_PRODUCT=$1 \
         TARGET_BUILD_VARIANT= \
