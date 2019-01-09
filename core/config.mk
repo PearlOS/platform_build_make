@@ -230,7 +230,7 @@ $(call project-set-path-variant,ril,TARGET_RIL_VARIANT,hardware/ril)
 $(call project-set-path-variant,recovery,RECOVERY_VARIANT,bootable/recovery)
 
 -include vendor/extra/BoardConfigExtra.mk
-ifneq ($(PEARL_BUILD),)
+ifneq ($(CUSTOM_BUILD),)
 include vendor/pearl/config/BoardConfigLean.mk
 endif
 
