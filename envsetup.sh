@@ -508,7 +508,7 @@ function choosevariant()
             export TARGET_BUILD_VARIANT=$default_value
         elif (echo -n $ANSWER | grep -q -e "^[0-9][0-9]*$") ; then
             if [ "$ANSWER" -le "${#VARIANT_CHOICES[@]}" ] ; then
-                export TARGET_BUILD_VARIANT=${VARIANT_CHOICES[$(($ANSWER-1))]}
+                export TARGET_BUILD_VARIANT=${VARIANT_CHOICES[$(($ANSWER-$_arrayoffset))]}
             fi
         else
             if check_variant $ANSWER
@@ -558,42 +558,96 @@ function add_lunch_combo()
     LUNCH_MENU_CHOICES=(${LUNCH_MENU_CHOICES[@]} $new_combo)
 }
 
-# add the default one here
-#add_lunch_combo aosp_arm-eng
-#add_lunch_combo aosp_arm64-eng
-#add_lunch_combo aosp_mips-eng
-#add_lunch_combo aosp_mips64-eng
-#add_lunch_combo aosp_x86-eng
-#add_lunch_combo aosp_x86_64-eng
-
 function print_lunch_menu()
 {
     local uname=$(uname)
     echo
     echo "You're building on" $uname
+    if [ "$(uname)" = "Darwin" ] ; then
+       echo "  (ohai, Ibish!)"
+    fi
     echo
-    echo "Lunch menu... pick a combo:"
+    if [ "z${PEARL_DEVICES_ONLY}" != "z" ]; then
+       echo "Breakfast menu... pick a combo:"
+    else
+       echo "Lunch menu... pick a combo:"
+    fi
 
     local i=1
     local choice
     for choice in ${LUNCH_MENU_CHOICES[@]}
     do
-        echo "     $i. $choice"
+        echo " $i. $choice "
         i=$(($i+1))
-    done
+    done | column
+
+    if [ "z${PEARL_DEVICES_ONLY}" != "z" ]; then
+       echo " "
+       echo "... "
+    fi
 
     echo
 }
 
+function brunch()
+{
+    breakfast $*
+    if [ $? -eq 0 ]; then
+        mka bacon
+    else
+        echo "No such item in brunch menu. Try 'breakfast'"
+        return 1
+    fi
+    return $?
+}
+
+function breakfast()
+{
+    target=$1
+    local variant=$2
+    PEEARL_DEVICES_ONLY="true"
+    unset LUNCH_MENU_CHOICES
+    add_lunch_combo full-eng
+    for f in `/bin/ls vendor/pearl/vendorsetup.sh 2> /dev/null`
+        do
+            echo "including $f"
+            . $f
+        done
+    unset f
+
+    if [ $# -eq 0 ]; then
+        # No arguments, so let's have the full menu
+        lunch
+    else
+        echo "z$target" | grep -q "-"
+        if [ $? -eq 0 ]; then
+            # A buildtype was specified, assume a full device name
+            lunch $target
+        else
+            if [ -z "$variant" ]; then
+                variant="userdebug"
+            fi
+            lunch pearl_$target-userdebug
+        fi
+    fi
+    return $?
+}
+
+alias bib=breakfast
+
 function lunch()
 {
     local answer
+    LUNCH_MENU_CHOICES=($(for l in ${LUNCH_MENU_CHOICES[@]}; do echo "$l"; done | sort))
 
     if [ "$1" ] ; then
         answer=$1
     else
         print_lunch_menu
-        echo -n "Which would you like? [aosp_arm-eng] "
+        tput setaf 2;
+        tput bold;
+        echo -n "Go ahead and pick a number or enter lunch combo(pearl_device-userdebug)... "
+        tput sgr0;
         read answer
     fi
 
@@ -606,7 +660,7 @@ function lunch()
     then
         if [ $answer -le ${#LUNCH_MENU_CHOICES[@]} ]
         then
-            selection=${LUNCH_MENU_CHOICES[$(($answer-1))]}
+            selection=${LUNCH_MENU_CHOICES[$(($answer-$_arrayoffset))]}
         fi
     else
         selection=$answer
@@ -683,7 +737,7 @@ function _lunch()
     COMPREPLY=( $(compgen -W "${LUNCH_MENU_CHOICES[*]}" -- ${cur}) )
     return 0
 }
-complete -F _lunch lunch
+complete -F _lunch lunch 2>/dev/null
 
 # Configures the build to build unbundled apps.
 # Run tapas with one or more app names (from LOCAL_PACKAGE_NAME)
@@ -1549,7 +1603,7 @@ function godir () {
                 echo "Invalid choice"
                 continue
             fi
-            pathname=${lines[$(($choice-1))]}
+            pathname=${lines[$(($choice-$_arrayoffset))]}
         done
     else
         pathname=${lines[0]}
@@ -1622,7 +1676,6 @@ function _wrap_build()
     fi
     echo " ####${color_reset}"
     echo
-    prebuilts/sdk/tools/jack-admin stop-server 2>&1 >/dev/null
     return $ret
 }
 
@@ -1668,15 +1721,35 @@ function atest()
     "$(gettop)"/tools/tradefederation/core/atest/atest.py "$@"
 }
 
-if [ "x$SHELL" != "x/bin/bash" ]; then
+function __detect_shell() {
     case `ps -o command -p $$` in
         *bash*)
+            echo bash
+            ;;
+        *zsh*)
+            echo zsh
             ;;
         *)
-            echo "WARNING: Only bash is supported, use of other shell would lead to erroneous results"
+            echo unknown
+            return 1
             ;;
     esac
+    return
+}
+
+if ! __detect_shell > /dev/null; then
+    echo "WARNING: Only bash and zsh are supported, use of other shell may lead to erroneous results"
 fi
+
+# determine whether arrays are zero-based (bash) or one-based (zsh)
+_xarray=(a b c)
+if [ -z "${_xarray[${#_xarray[@]}]}" ]
+then
+    _arrayoffset=1
+else
+    _arrayoffset=0
+fi
+unset _xarray
 
 # Execute the contents of any vendorsetup.sh files we can find.
 for f in `test -d device && find -L device -maxdepth 4 -name 'vendorsetup.sh' 2> /dev/null | sort` \
