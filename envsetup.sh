@@ -643,11 +643,11 @@ function lunch()
         # if we can't find a product, try to grab it off the AEX github
         T=$(gettop)
         pushd $T > /dev/null
-        build/tools/roomservice.py $product
+        vendor/pearl/build/tools/roomservice.py $product
         popd > /dev/null
         check_product $product
     else
-        build/tools/roomservice.py $product true
+        vendor/pearl/build/tools/roomservice.py $product true
     fi
     if [ $? -ne 0 ]
     then
