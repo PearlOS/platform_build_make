@@ -177,6 +177,10 @@ else
   endif
 endif
 
+#
+# -----------------------------------------------------------------
+# Add our Pearl properties to the build properties.
+ADDITIONAL_BUILD_PROPERTIES += $(Pearl_PROPERTIES)
 
 # Bring in standard build system definitions.
 include $(BUILD_SYSTEM)/definitions.mk
