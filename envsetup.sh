@@ -136,12 +136,12 @@ function check_product()
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
     fi
-    if (echo -n $1 | grep -q -e "^du_") ; then
-        DU_BUILD=$(echo -n $1 | sed -e 's/^du_//g')
+    if (echo -n $1 | grep -q -e "^pearl_") ; then
+        PEARL_BUILD=$(echo -n $1 | sed -e 's/^pearl_//g')
     else
-        DU_BUILD=
+        PEARL_BUILD=
     fi
-    export DU_BUILD
+    export PEARL_BUILD
 
         TARGET_PRODUCT=$1 \
         TARGET_BUILD_VARIANT= \

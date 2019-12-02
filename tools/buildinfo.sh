@@ -61,6 +61,6 @@ if [ -n "$BUILD_THUMBPRINT" ] ; then
   echo "ro.build.thumbprint=$BUILD_THUMBPRINT"
 fi
 
-echo "ro.du.device=$DU_DEVICE"
+echo "ro.pearl.device=$PEARL_DEVICE"
 
 echo "# end build properties"
