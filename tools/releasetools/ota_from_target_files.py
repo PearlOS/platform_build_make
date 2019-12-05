@@ -916,23 +916,40 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
   script.AppendExtra("ifelse(is_mounted(\"/system\"), unmount(\"/system\"));")
 
-  android_version = target_info.GetBuildProp("ro.build.version.release")
-  build_id = target_info.GetBuildProp("ro.build.id")
-  build_date = target_info.GetBuildProp("ro.pearl.build.date")
-  security_patch = target_info.GetBuildProp("ro.build.version.security_patch")
-  device = target_info.GetBuildProp("ro.pearl.device")
+  script.Print("*****************************************************************");
+  script.Print(" d8888b. d88888b  .d8b.  d8888b. db              .d88b.  .d8888. ");
+  script.Print(" 88  `8D 88'     d8' `8b 88  `8D 88             .8P  Y8. 88'  YP ");
+  script.Print(" 88oodD' 88ooooo 88ooo88 88oobY' 88             88    88 `8bo.   ");
+  script.Print(" 88~~~   88~~~~~ 88~~~88 88`8b   88      C8888D 88    88   `Y8b. ");
+  script.Print(" 88      88.     88   88 88 `88. 88booo.        `8b  d8' db   8D ");
+  script.Print(" 88      Y88888P YP   YP 88   YD Y88888P         `Y88P'  `8888Y' ");
+  script.Print("*****************************************************************");
+  script.Print("                   Pearl-OS Based on Android 10                  ");
+  script.Print("*****************************************************************");
 
-  script.Print("----------------------------------------------");
-  script.Print("           Project Pearl        ");
-  script.Print("    --------------------------  ");
-  script.Print("        Based on Android 10     ")
-  script.Print("----------------------------------------------");
-  script.Print(" Android version: %s"%(android_version));
-  script.Print(" Build id: %s"%(build_id));
-  script.Print(" Build date: %s"%(build_date));
-  script.Print(" Security patch: %s"%(security_patch));
-  script.Print(" Device: %s"%(device));
-  script.Print("----------------------------------------------");
+  pearlosversion = target_info.GetBuildProp("ro.pearl.display.version")
+  androidver = target_info.GetBuildProp("ro.build.version.release")
+  buildtype = target_info.GetBuildProp("ro.build.type")
+  buildid = target_info.GetBuildProp("ro.build.id")
+  buildday = target_info.GetBuildProp("ro.build.date")
+  securep = target_info.GetBuildProp("ro.build.version.security_patch")
+  device = target_info.GetBuildProp("ro.product.name")
+  manufacturer = target_info.GetBuildProp("ro.product.manufacturer")
+  script.Print("***********************************************");
+  script.Print(" ROM version      : %s"%(pearlosversion));
+  script.Print("");
+  script.Print(" Android version  : %s"%(androidver));
+  script.Print("");
+  script.Print(" Security patch   : %s"%(securep));
+  script.Print("");
+  script.Print(" Build date       : %s"%(buildday));
+  script.Print("");
+  script.Print(" Build type       : %s"%(buildtype));
+  script.Print("");
+  script.Print(" Device           : %s"%(device));
+  script.Print("");
+  script.Print(" Manufacturer     : %s"%(manufacturer));
+  script.Print("***********************************************");
   device_specific.FullOTA_InstallBegin()
 
   CopyInstallTools(output_zip)
