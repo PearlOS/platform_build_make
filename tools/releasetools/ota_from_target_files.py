@@ -252,6 +252,12 @@ AB_PARTITIONS = 'META/ab_partitions.txt'
 UNZIP_PATTERN = ['IMAGES/*', 'META/*', 'RADIO/*', 'INSTALL/*']
 RETROFIT_DAP_UNZIP_PATTERN = ['OTA/super_*.img', AB_PARTITIONS]
 
+# Images to be excluded from secondary payload. We essentially only keep
+# 'system_other' and bootloader partitions.
+SECONDARY_PAYLOAD_SKIPPED_IMAGES = [
+    'boot', 'dtbo', 'modem', 'odm', 'product', 'radio', 'recovery',
+    'system_ext', 'vbmeta', 'vbmeta_system', 'vbmeta_vendor', 'vendor']
+
 
 class BuildInfo(object):
   """A class that holds the information for a given build.
@@ -916,16 +922,9 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
   script.AppendExtra("ifelse(is_mounted(\"/system\"), unmount(\"/system\"));")
 
-  script.Print("*****************************************************************");
-  script.Print(" d8888b. d88888b  .d8b.  d8888b. db              .d88b.  .d8888. ");
-  script.Print(" 88  `8D 88'     d8' `8b 88  `8D 88             .8P  Y8. 88'  YP ");
-  script.Print(" 88oodD' 88ooooo 88ooo88 88oobY' 88             88    88 `8bo.   ");
-  script.Print(" 88~~~   88~~~~~ 88~~~88 88`8b   88      C8888D 88    88   `Y8b. ");
-  script.Print(" 88      88.     88   88 88 `88. 88booo.        `8b  d8' db   8D ");
-  script.Print(" 88      Y88888P YP   YP 88   YD Y88888P         `Y88P'  `8888Y' ");
-  script.Print("*****************************************************************");
-  script.Print("                   Pearl-OS Based on Android 10                  ");
-  script.Print("*****************************************************************");
+  script.Print("************************************");
+  script.Print("    Pearl-OS Based on Android 10    ");
+  script.Print("************************************");
 
   pearlosversion = target_info.GetBuildProp("ro.pearl.display.version")
   androidver = target_info.GetBuildProp("ro.build.version.release")
@@ -1887,6 +1886,43 @@ def GetTargetFilesZipForSecondaryImages(input_file, skip_postinstall=False):
   Returns:
     The filename of the target-files.zip for generating secondary payload.
   """
+
+  def GetInfoForSecondaryImages(info_file):
+    """Updates info file for secondary payload generation.
+
+    Scan each line in the info file, and remove the unwanted partitions from
+    the dynamic partition list in the related properties. e.g.
+    "super_google_dynamic_partitions_partition_list=system vendor product"
+    will become "super_google_dynamic_partitions_partition_list=system".
+
+    Args:
+      info_file: The input info file. e.g. misc_info.txt.
+
+    Returns:
+      A string of the updated info content.
+    """
+
+    output_list = []
+    with open(info_file) as f:
+      lines = f.read().splitlines()
+
+    # The suffix in partition_list variables that follows the name of the
+    # partition group.
+    LIST_SUFFIX = 'partition_list'
+    for line in lines:
+      if line.startswith('#') or '=' not in line:
+        output_list.append(line)
+        continue
+      key, value = line.strip().split('=', 1)
+      if key == 'dynamic_partition_list' or key.endswith(LIST_SUFFIX):
+        partitions = value.split()
+        partitions = [partition for partition in partitions if partition
+                      not in SECONDARY_PAYLOAD_SKIPPED_IMAGES]
+        output_list.append('{}={}'.format(key, ' '.join(partitions)))
+      else:
+        output_list.append(line)
+    return '\n'.join(output_list)
+
   target_file = common.MakeTempFile(prefix="targetfiles-", suffix=".zip")
   target_zip = zipfile.ZipFile(target_file, 'w', allowZip64=True)
 
@@ -1904,12 +1940,33 @@ def GetTargetFilesZipForSecondaryImages(input_file, skip_postinstall=False):
                            'IMAGES/system.map'):
       pass
 
+    # Copy images that are not in SECONDARY_PAYLOAD_SKIPPED_IMAGES.
+    elif info.filename.startswith(('IMAGES/', 'RADIO/')):
+      image_name = os.path.basename(info.filename)
+      if image_name not in ['{}.img'.format(partition) for partition in
+                            SECONDARY_PAYLOAD_SKIPPED_IMAGES]:
+        common.ZipWrite(target_zip, unzipped_file, arcname=info.filename)
+
     # Skip copying the postinstall config if requested.
     elif skip_postinstall and info.filename == POSTINSTALL_CONFIG:
       pass
 
-    elif info.filename.startswith(('META/', 'IMAGES/', 'RADIO/')):
-      common.ZipWrite(target_zip, unzipped_file, arcname=info.filename)
+    elif info.filename.startswith('META/'):
+      # Remove the unnecessary partitions for secondary images from the
+      # ab_partitions file.
+      if info.filename == AB_PARTITIONS:
+        with open(unzipped_file) as f:
+          partition_list = f.read().splitlines()
+        partition_list = [partition for partition in partition_list if partition
+                          and partition not in SECONDARY_PAYLOAD_SKIPPED_IMAGES]
+        common.ZipWriteStr(target_zip, info.filename, '\n'.join(partition_list))
+      # Remove the unnecessary partitions from the dynamic partitions list.
+      elif (info.filename == 'META/misc_info.txt' or
+            info.filename == DYNAMIC_PARTITION_INFO):
+        modified_info = GetInfoForSecondaryImages(unzipped_file)
+        common.ZipWriteStr(target_zip, info.filename, modified_info)
+      else:
+        common.ZipWrite(target_zip, unzipped_file, arcname=info.filename)
 
   common.ZipClose(target_zip)
 

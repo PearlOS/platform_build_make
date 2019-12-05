@@ -4262,7 +4262,7 @@ name := $(TARGET_PRODUCT)
 ifeq ($(TARGET_BUILD_TYPE),debug)
   name := $(name)_debug
 endif
-name := $(name)-ota-$(FILE_NAME_TAG)
+name := Pearl-OS-10--$(TARGET_DEVICE)-ota-$(shell date +"%Y%m%d")
 
 INTERNAL_OTA_PACKAGE_TARGET := $(PRODUCT_OUT)/$(name).zip
 
@@ -4306,19 +4306,6 @@ otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
 pearl: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(PEARL_TARGET_PACKAGE)
 	$(hide) $(MD5SUM) $(PEARL_TARGET_PACKAGE) > $(PEARL_TARGET_PACKAGE).md5sum
-	@echo -e ${CL_BLU}"                                                            "${CL_BLU}
-        @echo -e ${CL_BLU}" ========================================================== "${CL_BLU}
-        @echo -e ${CL_BLU}"                                                            "${CL_BLU}
-        @echo -e ${CL_BLU}" ██████╗ ███████╗ █████╗ ██████╗ ██╗       ██████╗ ███████╗ "${CL_BLU}
-        @echo -e ${CL_BLU}" ██╔══██╗██╔════╝██╔══██╗██╔══██╗██║      ██╔═══██╗██╔════╝ "${CL_BLU}
-        @echo -e ${CL_BLU}" ██████╔╝█████╗  ███████║██████╔╝██║█████╗██║   ██║███████╗ "${CL_BLU}
-        @echo -e ${CL_BLU}" ██╔═══╝ ██╔══╝  ██╔══██║██╔══██╗██║╚════╝██║   ██║╚════██║ "${CL_BLU}
-        @echo -e ${CL_BLU}" ██║     ███████╗██║  ██║██║  ██║███████╗ ╚██████╔╝███████║ "${CL_BLU}
-        @echo -e ${CL_BLU}" ╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝  ╚═════╝ ╚══════╝ "${CL_BLU}
-        @echo -e ${CL_BLU}"                                                            "${CL_BLU}
-        @echo -e ${CL_BLU}" ========================================================== "${CL_BLU}
-        @echo -e ${CL_BLU}"            Project Pearl Based On Andorid 10               "${CL_BLU}
-        @echo -e ${CL_BLU}" ========================================================== "${CL_BLU}
         @echo -e "Package complete: $(PEARL_TARGET_PACKAGE)"
 
 ifeq ($(BOARD_BUILD_RETROFIT_DYNAMIC_PARTITIONS_OTA_PACKAGE),true)
