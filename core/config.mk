@@ -236,7 +236,7 @@ FIND_LEAVES_EXCLUDES := $(addprefix --prune=, $(SCAN_EXCLUDE_DIRS) .repo .git)
 -include vendor/extra/BoardConfigExtra.mk
 
 ifneq ($(CUSTOM_BUILD),)
-include vendor/aosp/config/BoardConfig.mk
+include vendor/pearl/config/BoardConfig.mk
 endif
 
 # The build system exposes several variables for where to find the kernel
@@ -386,9 +386,9 @@ ifeq (,$(strip $(PDK_FUSION_PLATFORM_ZIP)$(PDK_FUSION_PLATFORM_DIR)))
   _pdk_fusion_search_paths := \
     vendor/pdk/$(TARGET_DEVICE)/$(TARGET_DEVICE)-$(TARGET_BUILD_VARIANT)/platform \
     vendor/pdk/$(TARGET_DEVICE)/$(TARGET_PRODUCT)-$(TARGET_BUILD_VARIANT)/platform \
-    vendor/pdk/$(TARGET_DEVICE)/$(patsubst aosp_%,full_%,$(TARGET_PRODUCT))-$(TARGET_BUILD_VARIANT)/platform \
+    vendor/pdk/$(TARGET_DEVICE)/$(patsubst pearl_%,full_%,$(TARGET_PRODUCT))-$(TARGET_BUILD_VARIANT)/platform \
     vendor/pdk/$(TARGET_PRODUCT)/$(TARGET_PRODUCT)-$(TARGET_BUILD_VARIANT)/platform \
-    vendor/pdk/$(TARGET_PRODUCT)/$(patsubst aosp_%,full_%,$(TARGET_PRODUCT))-$(TARGET_BUILD_VARIANT)/platform
+    vendor/pdk/$(TARGET_PRODUCT)/$(patsubst pearl_%,full_%,$(TARGET_PRODUCT))-$(TARGET_BUILD_VARIANT)/platform
 
   _pdk_fusion_default_platform_zip := $(strip $(foreach p,$(_pdk_fusion_search_paths),$(wildcard $(p)/platform.zip)))
   ifneq (,$(_pdk_fusion_default_platform_zip))
@@ -1179,10 +1179,10 @@ DEFAULT_DATA_OUT_MODULES := ltp $(ltp_packages) $(kselftest_modules)
 .KATI_READONLY := DEFAULT_DATA_OUT_MODULES
 
 ifneq ($(CUSTOM_BUILD),)
-ifneq ($(wildcard device/custom/sepolicy/common/sepolicy.mk),)
+ifneq ($(wildcard device/parl/sepolicy/common/sepolicy.mk),)
 ## We need to be sure the global selinux policies are included
 ## last, to avoid accidental resetting by device configs
-$(eval include device/custom/sepolicy/common/sepolicy.mk)
+$(eval include device/pearl/sepolicy/common/sepolicy.mk)
 endif
 endif
 
